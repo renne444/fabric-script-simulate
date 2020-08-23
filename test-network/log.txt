@@ -1,0 +1,1 @@
+[34m2020-08-16 20:24:13.552 CST [chaincodeCmd] ClientWait -> INFO 001[0m txid [cfb802cdae66ce44d154fea66bc8514b2a52eb21bfdec83ef2ccdfa2aeb9fc7b] committed with status (VALID) at 
