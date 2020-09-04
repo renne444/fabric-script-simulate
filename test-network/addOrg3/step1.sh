@@ -19,7 +19,6 @@ function fetchChannelConfig() {
 
   peer channel fetch config config_block.pb -o localhost:7050 --ordererTLSHostnameOverride orderer.rennec.com -c $CHANNEL --tls --cafile $ORDERER_CA
   configtxlator proto_decode --input config_block.pb --type common.Block | jq .data.data[0].payload.data.config >"${OUTPUT}"
-  # configtxlator proto_decode --input config_block.pb --type common.Block >"${OUTPUT}"
 
 }
 

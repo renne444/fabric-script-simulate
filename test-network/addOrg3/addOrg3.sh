@@ -7,7 +7,6 @@ function generateOrg3() {
 }
 
 function generateOrg3Definition() {
-    #configtxgen -printOrg Org3MSP
     configtxgen -printOrg Org3MSP > ../organizations/peerOrganizations/org3.rennec.com/org3.json
 }
 
