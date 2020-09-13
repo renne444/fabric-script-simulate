@@ -23,5 +23,5 @@ Organizations:
         Type: Signature
         Rule: "OR('ExtraOrdererOrgMSP.admin')"
 
-    OrdererEndpoints:
-      - orderer.extra.com:7050
+#    OrdererEndpoints:
+#      - orderer.extra.com:8050

@@ -319,6 +319,7 @@ Profiles:
         Consortiums:
             SampleConsortium:
                 Organizations:
+                    - *OrdererOrg
                     - *Org1
                     - *Org2
     TwoOrgsChannel:

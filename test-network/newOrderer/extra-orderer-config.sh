@@ -19,25 +19,22 @@ function fetchBlock() {
 }
 
 function generateConfigJson() {
-  jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"ExtraOrdererOrg":.[1]}}}}}' ./blockInfo/config.json ./blockInfo/ExtraOrdererOrg.json > blockInfo/config1.json
-  # jq -s '.[0] * {"channel_group":{"groups":{"Consortiums":{"groups":{"SampleConsortium":{"groups": {"ExtraOrdererOrgMSP":.[1]}}}}}}}' blockInfo/config1.json ./blockInfo/ExtraOrdererOrg.json > blockInfo/config2.json
-  cert=$(base64 ./organizations/ordererOrganizations/extra.com/orderers/orderer.extra.com/tls/server.crt | sed ':a;N;$!ba;s/\n//g')
-  cat ./blockInfo/config1.json | jq '.channel_group.groups.Orderer.values.ConsensusType.value.metadata.consenters += [{"client_tls_cert": "'$cert'", "host": "orderer.extra.com", "port": 7050, "server_tls_cert": "'$cert'"}] ' > blockInfo/modified_config.json
+jq -s '.[0] * {"channel_group":{"groups":{"Orderer":{"groups": {"ExtraOrdererOrg":.[1]}}}}}' ./blockInfo/config.json ./blockInfo/ExtraOrdererOrg.json > blockInfo/config1.json
+jq -s '.[0] * {"channel_group":{"groups":{"Consortiums":{"groups":{"SampleConsortium":{"groups": {"ExtraOrdererOrgMSP":.[1]}}}}}}}' blockInfo/config1.json ./blockInfo/ExtraOrdererOrg.json > blockInfo/config2.json
+cert=$(base64 ./organizations/ordererOrganizations/extra.com/orderers/orderer.extra.com/tls/server.crt | sed ':a;N;$!ba;s/\n//g')
+cat ./blockInfo/config2.json | jq '.channel_group.groups.Orderer.values.ConsensusType.value.metadata.consenters += [{"client_tls_cert": "'$cert'", "host": "orderer.extra.com", "port": 8050, "server_tls_cert": "'$cert'"}] ' > blockInfo/modified_config.json
 }
 
 function generateConfigBlock() {
+configtxlator proto_encode --input blockInfo/config.json --type common.Config --output blockInfo/config.pb
+configtxlator proto_encode --input blockInfo/modified_config.json --type common.Config --output blockInfo/modified_config.pb
+configtxlator compute_update --channel_id $CHANNEL_NAME --original blockInfo/config.pb --updated blockInfo/modified_config.pb --output blockInfo/newordorg.pb
+configtxlator proto_decode --input blockInfo/newordorg.pb --type common.ConfigUpdate | jq . > blockInfo/newordorg.json
 
 
-  configtxlator proto_encode --input blockInfo/config.json --type common.Config --output blockInfo/config.pb
-  echo "----"
-  configtxlator proto_encode --input blockInfo/modified_config.json --type common.Config --output blockInfo/modified_config.pb
-  echo "----"
-  configtxlator compute_update --channel_id $CHANNEL_NAME --original blockInfo/config.pb --updated blockInfo/modified_config.pb --output blockInfo/newordorg.pb
-  configtxlator proto_decode --input blockInfo/newordorg.pb --type common.ConfigUpdate | jq . > blockInfo/newordorg.json
+echo '{"payload":{"header":{"channel_header":{"channel_id":"'$(echo ${CHANNEL_NAME})'", "type":2}},"data":{"config_update":'$(cat blockInfo/newordorg.json)'}}}' | jq . > blockInfo/ordorg_update_in_envelope.json
+configtxlator proto_encode --input blockInfo/ordorg_update_in_envelope.json --type common.Envelope --output blockInfo/ordorg_update_in_envelope.pb
 
-  echo '{"payload":{"header":{"channel_header":{"channel_id":"'$(echo ${CHANNEL_NAME})'", "type":2}},"data":{"config_update":'$(cat blockInfo/newordorg.json)'}}}' | jq . > blockInfo/ordorg_update_in_envelope.json
-
-  configtxlator proto_encode --input blockInfo/ordorg_update_in_envelope.json --type common.Envelope --output blockInfo/ordorg_update_in_envelope.pb
 }
 
 function submitNewConfigBlock() {
